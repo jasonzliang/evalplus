@@ -171,3 +171,6 @@ MbppPlus*.gz
 evalplus/_version.py
 *mbpp.json
 *.jsonl
+
+# MacOS
+.DS_store
