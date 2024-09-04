@@ -174,3 +174,7 @@ evalplus/_version.py
 
 # MacOS
 .DS_store
+*.json
+*.png
+*.pdf
+trash-bin
