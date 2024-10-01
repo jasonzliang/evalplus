@@ -1,9 +1,8 @@
 import json
 import os
 from os import PathLike
-from typing import List
+from typing import List, Optional
 
-from model import DecoderBase, make_model
 from rich.progress import (
     BarColumn,
     MofNCompleteColumn,
@@ -12,28 +11,8 @@ from rich.progress import (
     TimeElapsedColumn,
 )
 
-
-def construct_contract_prompt(prompt: str, contract_type: str, contract: str) -> str:
-    if contract_type == "none":
-        return prompt
-    elif contract_type == "docstring":
-        # embed within the docstring
-        sep = ""
-        if '"""' in prompt:
-            sep = '"""'
-        elif "'''" in prompt:
-            sep = "'''"
-        assert sep != ""
-        l = prompt.split(sep)
-        contract = "\n".join([x.split("#")[0] for x in contract.splitlines()])
-        l[1] = (
-            l[1] + contract + "\n" + " " * (len(contract) - len(contract.lstrip()) - 1)
-        )
-        return sep.join(l)
-    elif contract_type == "code":
-        # at the beginning of the function
-        contract = "\n".join([x.split("#")[0] for x in contract.splitlines()])
-        return prompt + contract
+from evalplus.provider import DecoderBase, make_model
+from evalplus.sanitize import sanitize
 
 
 def codegen(
@@ -54,6 +33,15 @@ def codegen(
                     continue
                 task_id = json.loads(line)["task_id"]
                 task2nexist[task_id] = task2nexist.get(task_id, 0) + 1
+
+    if target_path.endswith(".jsonl"):
+        raw_target_path = target_path.replace(".jsonl", ".raw.jsonl")
+    else:
+        raw_target_path = target_path + ".raw"
+        os.makedirs(target_path, exist_ok=True)
+
+    print(f"Sanitized code outputs will be saved to {target_path}")
+    print(f"Raw outputs will be saved to {raw_target_path}")
 
     with Progress(
         TextColumn(f"{dataset} •" + "[progress.percentage]{task.percentage:>3.0f}%"),
@@ -108,18 +96,38 @@ def codegen(
                 )
                 assert outputs, "No outputs from model!"
                 for impl in outputs:
-                    solution = (
-                        prompt + impl if model.is_direct_completion() else impl
+                    solution = prompt + impl if model.is_direct_completion() else impl
+                    sanitized_solution = sanitize(
+                        solution, entrypoint=task["entry_point"]
                     )
                     if target_path.endswith(".jsonl"):
+                        # Writing the sanitized version
                         with open(target_path, "a") as f:
+                            f.write(
+                                json.dumps(
+                                    {"task_id": task_id, "solution": sanitized_solution}
+                                )
+                                + "\n"
+                            )
+
+                        # Writing the raw version
+                        with open(raw_target_path, "a") as f:
                             f.write(
                                 json.dumps({"task_id": task_id, "solution": solution})
                                 + "\n"
                             )
                     else:
+                        # Writing the sanitized version
                         with open(
                             os.path.join(target_path, p_name, f"{sidx}.py"),
+                            "w",
+                            encoding="utf-8",
+                        ) as f:
+                            f.write(sanitized_solution)
+
+                        # Writing the raw version
+                        with open(
+                            os.path.join(raw_target_path, p_name, f"{sidx}.py"),
                             "w",
                             encoding="utf-8",
                         ) as f:
@@ -127,11 +135,11 @@ def codegen(
                     sidx += 1
 
 
-def main(
+def run_codegen(
     model: str,
     dataset: str,
-    root: str,
-    bs: int = 1,
+    root: str = "evalplus_results",
+    bs: Optional[int] = None,
     n_samples: int = 1,
     temperature: float = 0.0,
     resume: bool = True,
@@ -139,10 +147,11 @@ def main(
     id_range: List = None,
     version: str = "default",
     backend: str = "vllm",
+    force_base_prompt: bool = False,
     base_url: str = None,
     tp: int = 1,
-    evalperf_type: str = None,  # This is for EvalPerf
-    jsonl_fmt: bool = False,
+    evalperf_type: str = None,  # For EvalPerf
+    jsonl_fmt: bool = True,
 ):
     assert dataset in ["humaneval", "mbpp"], f"Invalid dataset {dataset}"
     assert backend in ["vllm", "hf", "openai"]
@@ -162,6 +171,10 @@ def main(
         assert len(id_range) == 2, "id_range must be a list of length 2"
         assert id_range[0] < id_range[1], "id_range must be increasing"
         id_range = tuple(id_range)
+
+    if bs is None:
+        bs = min(n_samples, 32)
+        print(f"Setting batch size to {bs}")
 
     # Make project dir
     os.makedirs(root, exist_ok=True)
@@ -187,6 +200,7 @@ def main(
         backend=backend,
         batch_size=bs,
         temperature=temperature,
+        force_base_prompt=force_base_prompt,
         dataset=dataset,
         base_url=base_url,
         tp=tp,
@@ -195,7 +209,7 @@ def main(
     )
 
     # Make dir for codes generated by each model
-    identifier = model.replace("/", "--") + f"_{backend}_temp_{temperature}"
+    identifier = model.strip("./").replace("/", "--") + f"_{backend}_temp_{temperature}"
     if evalperf_type:
         identifier += f"-{evalperf_type}"
 
@@ -215,8 +229,14 @@ def main(
         version=version,
     )
 
+    return target_path
 
-if __name__ == "__main__":
+
+def main():
     from fire import Fire
 
-    Fire(main)
+    Fire(run_codegen)
+
+
+if __name__ == "__main__":
+    main()
