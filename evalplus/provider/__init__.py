@@ -11,8 +11,13 @@ def make_model(
     # instruction model only
     instruction_prefix=None,
     response_prefix=None,
+    # non-server only
+    dtype="bfloat16",
+    trust_remote_code=False,
     # vllm only
     tp=1,
+    enable_prefix_caching=False,
+    enable_chunked_prefill=False,
     # openai only
     base_url=None,
     # hf only
@@ -30,6 +35,10 @@ def make_model(
             tensor_parallel_size=tp,
             instruction_prefix=instruction_prefix,
             response_prefix=response_prefix,
+            trust_remote_code=trust_remote_code,
+            enable_prefix_caching=enable_prefix_caching,
+            enable_chunked_prefill=enable_chunked_prefill,
+            dtype=dtype,
         )
     elif backend == "hf":
         from evalplus.provider.hf import HuggingFaceDecoder
@@ -43,6 +52,8 @@ def make_model(
             instruction_prefix=instruction_prefix,
             response_prefix=response_prefix,
             attn_implementation=attn_implementation,
+            trust_remote_code=trust_remote_code,
+            dtype=dtype,
         )
     elif backend == "openai":
         from evalplus.provider.openai import OpenAIChatDecoder
@@ -72,6 +83,17 @@ def make_model(
 
         assert not force_base_prompt, f"{backend} backend does not serve base model"
         return GeminiDecoder(
+            name=model,
+            batch_size=batch_size,
+            temperature=temperature,
+            instruction_prefix=instruction_prefix,
+            response_prefix=response_prefix,
+        )
+    elif backend == "bedrock":
+        from evalplus.provider.bedrock import BedrockDecoder
+
+        assert not force_base_prompt, f"{backend} backend does not serve base model"
+        return BedrockDecoder(
             name=model,
             batch_size=batch_size,
             temperature=temperature,

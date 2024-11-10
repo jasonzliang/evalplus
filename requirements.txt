@@ -10,6 +10,8 @@ rich
 openai
 tree_sitter>=0.22.0
 tree-sitter-python
+datasets
+psutil
 
 # vllm
 vllm
@@ -22,4 +24,6 @@ google-generativeai
 
 # transformers
 transformers
-stop-sequencer
+
+# bedrock
+boto3

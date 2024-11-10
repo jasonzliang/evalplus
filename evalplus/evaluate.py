@@ -15,6 +15,7 @@ from termcolor import cprint
 from tqdm import tqdm
 
 from evalplus.codegen import run_codegen
+from evalplus.config import *
 from evalplus.data import (
     get_human_eval_plus,
     get_human_eval_plus_hash,
@@ -84,8 +85,8 @@ def check_correctness(
     base_only=False,
     fast_check=False,
     identifier=None,
-    min_time_limit: float = 0.1,
-    gt_time_limit_factor: float = 2.0,
+    min_time_limit: float = DEFAULT_MIN_TIME_LIMIT,
+    gt_time_limit_factor: float = DEFAULT_GT_TIME_LIMIT_FACTOR,
 ) -> Dict[str, Result]:  # {...}, "base" | "plus" -> (status, details)
     ret = {
         "completion_id": completion_id,
@@ -130,14 +131,18 @@ def evaluate(
     parallel: Optional[int] = None,
     i_just_wanna_run: bool = False,
     test_details: bool = False,
-    min_time_limit: float = 1,
-    gt_time_limit_factor: float = 4.0,
+    min_time_limit: float = DEFAULT_MIN_TIME_LIMIT,
+    gt_time_limit_factor: float = DEFAULT_GT_TIME_LIMIT_FACTOR,
     mini: bool = False,
     noextreme: bool = False,
     version: str = "default",
     **model_kwargs,
 ):
     if model_kwargs:
+        # To suppress the warning of tokenizers
+        os.environ["TOKENIZERS_PARALLELISM"] = os.environ.get(
+            "TOKENIZERS_PARALLELISM", "false"
+        )
         samples = run_codegen(
             dataset=dataset,
             **model_kwargs,
@@ -317,6 +322,7 @@ def evaluate(
     cprint(f"{dataset} (base tests)", "red")
     for k, v in pass_at_k.items():
         cprint(f"{k}:\t{v:.3f}", "red")
+    results["pass_at_k"] = {"base": pass_at_k}
 
     if new_correct:
         cprint(f"{dataset}+ (base + extra tests)", "green")
@@ -327,6 +333,7 @@ def evaluate(
         }
         for k, v in pass_at_k.items():
             cprint(f"{k}:\t{v:.3f}", "green")
+        results["pass_at_k"]["plus"] = pass_at_k
 
     # save results
     if os.path.isfile(result_path) and i_just_wanna_run:

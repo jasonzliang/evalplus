@@ -2,18 +2,18 @@
 
 <p align="center">
     <a href="https://evalplus.github.io/leaderboard.html"><img src="https://img.shields.io/badge/%F0%9F%8F%86-leaderboard-8A2BE2"></a>
-    <a href="https://openreview.net/forum?id=1qvx610Cu7"><img src="https://img.shields.io/badge/Paper-NeurIPS'23-a55fed.svg"></a>
+    <a href="https://openreview.net/forum?id=1qvx610Cu7"><img src="https://img.shields.io/badge/EvalPlus-NeurIPS'23-a55fed.svg"></a>
+    <a href="https://openreview.net/forum?id=IBCBMeAhmC"><img src="https://img.shields.io/badge/EvalPerf-COLM'24-a55fed.svg"></a>
     <a href="https://huggingface.co/evalplus/"><img src="https://img.shields.io/badge/🤗%20Hugging%20Face-evalplus-%23ff8811.svg"></a>
     <a href="https://pypi.org/project/evalplus/"><img src="https://img.shields.io/pypi/v/evalplus?color=g"></a>
-    <a href="https://pepy.tech/project/evalplus"><img src="https://static.pepy.tech/badge/evalplus"></a>
     <a href="https://hub.docker.com/r/ganler/evalplus" title="Docker"><img src="https://img.shields.io/docker/image-size/ganler/evalplus"></a>
-    <a href="https://github.com/evalplus/evalplus/blob/master/LICENSE"><img src="https://img.shields.io/pypi/l/evalplus"></a>
 </p>
 
 <p align="center">
+    <a href="#-news">📢News</a> •
     <a href="#-quick-start">🔥Quick Start</a> •
+    <a href="#-llm-backends">🚀LLM Backends</a> •
     <a href="#-documents">📚Documents</a> •
-    <a href="#-llm-generated-code">💻LLM code</a> •
     <a href="#-citation">📜Citation</a> •
     <a href="#-acknowledgement">🙏Acknowledgement</a>
 </p>
@@ -24,42 +24,109 @@ EvalPlus is a rigorous evaluation framework for LLM4Code, with:
 
 - ✨ **HumanEval+**: 80x more tests than the original HumanEval!
 - ✨ **MBPP+**: 35x more tests than the original MBPP!
-- ✨ **Evaluation framework**: our packages/images/tools can easily and safely evaluate LLMs on above benchmarks.
+- ✨ **EvalPerf**: evaluating the efficiency of LLM-generated code!
+- ✨ **Framework**: our packages/images/tools can easily and safely evaluate LLMs on above benchmarks.
 
 Why EvalPlus?
 
-- ✨ **Precise evaluation & ranking**: See [our leaderboard](https://evalplus.github.io/leaderboard.html) for latest LLM rankings before & after rigorous evaluation.
-- ✨ **Coding rigorousness**: Look at the score differences! esp. before and after using EvalPlus tests! Less drop is better as it means more rigorousness and less laxity in code generation; while a big drop means the generated code tends to be fragile.
-- ✨ **Pre-generated samples**: EvalPlus accelerates LLM4Code research by open-sourcing [LLM-generated samples](#-LLM-generated-code) for various models -- no need to re-run the expensive benchmarks!
+- ✨ **Precise evaluation**: See [our leaderboard](https://evalplus.github.io/leaderboard.html) for latest LLM rankings before & after rigorous evaluation.
+- ✨ **Coding rigorousness**: Look at the score differences! esp. before & after using EvalPlus tests! Less drop means more rigorousness in code generation; while a bigger drop means the generated code tends to be fragile.
+- ✨ **Code efficiency**: Beyond correctness, our EvalPerf dataset evaluates the efficiency of LLM-generated code via performance-exercising coding tasks and test inputs.
 
-Want to know more details? Read our [**NeurIPS'23 paper**](https://openreview.net/forum?id=1qvx610Cu7) [![](https://img.shields.io/badge/Paper-NeurIPS'23-a55fed.svg)](https://openreview.net/forum?id=1qvx610Cu7) as well as our [**Google Slides**](https://docs.google.com/presentation/d/1eTxzUQG9uHaU13BGhrqm4wH5NmMZiM3nI0ezKlODxKs)!
+Want to know more details? Read our papers & materials!
 
-> [!Important]
->
-> 🚧 **MBPP+ update (`v0.1.0` to `v0.2.0`)**:
-> We recently improved and stablized MBPP+ dataset by removing some tasks whose `test_list` is wrong (brought by the original MBPP dataset itself) to make it more reasonable to solve.
-> In `v0.1.0` MBPP+ has 399 tasks while the new `v0.2.0` has 378 tasks.
-> We also improved the oracle. Therefore, **using `v0.2.0` you might expect ~4pp pass@1 improvement** for both base and plus tests.
+- **EvalPlus**: [NeurIPS'23 paper](https://openreview.net/forum?id=1qvx610Cu7), [Slides](https://docs.google.com/presentation/d/1eTxzUQG9uHaU13BGhrqm4wH5NmMZiM3nI0ezKlODxKs), [Poster](https://jw-liu.xyz/assets/pdf/EvalPlus_Poster.pdf), [Leaderboard](https://evalplus.github.io/leaderboard.html)
+- **EvalPerf**: [COLM'24 paper](https://openreview.net/forum?id=IBCBMeAhmC), [Poster](https://jw-liu.xyz/assets/pdf/jiawei-colm-evalperf-poster.pdf), [Documentation](./docs/evalperf.md), [Leaderboard](https://evalplus.github.io/evalperf.html)
+
+## 📢 News
+
+Below tracks the notable updates of EvalPlus:
+
+- **[2024-10-20 `v0.3.1`]**: EvalPlus `v0.3.1` is officially released! Highlights: *(i)* Code efficiency evaluation via EvalPerf, *(ii)* one command to run all: generation + post-processing + evaluation, *(iii)* support for more inference backends such as Google Gemini & Anthropic, etc.
+- **[2024-06-09 pre `v0.3.0`]**: Improved ground-truth solutions for MBPP+ tasks (IDs: 459, 102, 559). Thanks to [EvalArena](https://github.com/crux-eval/eval-arena).
+- **[2024-04-17 pre `v0.3.0`]**: MBPP+ is upgraded to `v0.2.0` by removing some broken tasks (399 -> 378 tasks). ~4pp pass@1 improvement could be expected.
+- **Earlier**:
+  - ([`v0.2.1`](https://github.com/evalplus/evalplus/releases/tag/v0.2.1)) You can use EvalPlus datasets via [bigcode-evaluation-harness](https://github.com/bigcode-project/bigcode-evaluation-harness)! HumanEval+ oracle fixes (32).
+  - ([`v0.2.0`](https://github.com/evalplus/evalplus/releases/tag/v0.2.0)) MBPP+ is released! HumanEval contract & input fixes (0/3/9/148/114/1/2/99/28/32/35/160).
+  - ([`v0.1.7`](https://github.com/evalplus/evalplus/releases/tag/v0.1.7)) [Leaderboard](https://evalplus.github.io/leaderboard.html) release; HumanEval+ contract and input fixes (32/166/126/6)
+  - ([`v0.1.6`](https://github.com/evalplus/evalplus/releases/tag/v0.1.6)) Configurable and by-default-conservative timeout settings; HumanEval+ contract & ground-truth fixes (129/148/75/53/0/3/9/140)
+  - ([`v0.1.5`](https://github.com/evalplus/evalplus/releases/tag/v0.1.5)) HumanEval+ mini is released for ultra-fast evaluation when you have too many samples!
+  - ([`v0.1.1`](https://github.com/evalplus/evalplus/releases/tag/v0.1.1)) Optimizing user experiences: evaluation speed, PyPI package, Docker, etc.
+  - ([`v0.1.0`](https://github.com/evalplus/evalplus/releases/tag/v0.1.0)) HumanEval+ is released!
 
 ## 🔥 Quick Start
 
-> [!Tip]
->
-> EvalPlus ❤️ [bigcode-evaluation-harness](https://github.com/bigcode-project/bigcode-evaluation-harness)!
-> HumanEval+ and MBPP+ have been integrated to bigcode-evaluation-harness that you can also run EvalPlus datasets there!
+### Code Correctness Evaluation: HumanEval(+) or MBPP(+)
 
 ```bash
-pip install --upgrade "git+https://github.com/evalplus/evalplus.git"
+pip install --upgrade "evalplus[vllm] @ git+https://github.com/evalplus/evalplus"
+# Or `pip install "evalplus[vllm]" --upgrade` for the latest stable release
+
+evalplus.evaluate --model "ise-uiuc/Magicoder-S-DS-6.7B" \
+                  --dataset [humaneval|mbpp]             \
+                  --backend vllm                         \
+                  --greedy
 ```
+
+<details><summary>🛡️ Safe code execution within Docker <i>:: click to expand ::</i></summary>
+<div>
+
+```bash
+# Local generation
+evalplus.codegen --model "ise-uiuc/Magicoder-S-DS-6.7B" \
+                 --dataset humaneval                    \
+                 --backend vllm                         \
+                 --greedy
+
+# Code execution within Docker
+docker run --rm --pull=always -v $(pwd)/evalplus_results:/app ganler/evalplus:latest \
+           evalplus.evaluate --dataset humaneval                                     \
+           --samples /app/humaneval/ise-uiuc--Magicoder-S-DS-6.7B_vllm_temp_0.0.jsonl
+```
+
+</div>
+</details>
+
+### Code Efficiency Evaluation: EvalPerf (*nix only)
+
+```bash
+pip install --upgrade "evalplus[perf,vllm] @ git+https://github.com/evalplus/evalplus"
+# Or `pip install "evalplus[perf,vllm]" --upgrade` for the latest stable release
+
+sudo sh -c 'echo 0 > /proc/sys/kernel/perf_event_paranoid' # Enable perf
+evalplus.evalperf --model "ise-uiuc/Magicoder-S-DS-6.7B" --backend vllm
+```
+
+<details><summary>🛡️ Safe code execution within Docker <i>:: click to expand ::</i></summary>
+<div>
+
+```bash
+# Local generation
+evalplus.codegen --model "ise-uiuc/Magicoder-S-DS-6.7B" \
+                 --dataset evalperf                     \
+                 --backend vllm                         \
+                 --temperature 1.0                      \
+                 --n-samples 100
+
+# Code execution within Docker
+sudo sh -c 'echo 0 > /proc/sys/kernel/perf_event_paranoid' # Enable perf
+docker run --cap-add PERFMON --rm --pull=always -v $(pwd)/evalplus_results:/app ganler/evalplus:latest \
+           evalplus.evalperf --samples /app/evalperf/ise-uiuc--Magicoder-S-DS-6.7B_vllm_temp_1.0.jsonl
+```
+
+</div>
+</details>
+
+## 🚀 LLM Backends
 
 ### HuggingFace models
 
 - `transformers` backend:
 
 ```bash
-evalplus.evaluate --model "mistralai/Mistral-7B-Instruct-v0.3" \
-                  --dataset [humaneval|mbpp]                   \
-                  --backend hf                                 \
+evalplus.evaluate --model "ise-uiuc/Magicoder-S-DS-6.7B" \
+                  --dataset [humaneval|mbpp]             \
+                  --backend hf                           \
                   --greedy
 ```
 
@@ -73,7 +140,7 @@ evalplus.evaluate --model "mistralai/Mistral-7B-Instruct-v0.3" \
 > please add `--force-base-prompt` to avoid being evaluated
 > in a chat mode.
 
-<details><summary>Enable Flash Attention 2<i>:: click to expand ::</i></summary>
+<details><summary>Enable Flash Attention 2 <i>:: click to expand ::</i></summary>
 <div>
 
 ```bash
@@ -84,10 +151,10 @@ pip install flash-attn --no-build-isolation
 # wheels from https://github.com/Dao-AILab/flash-attention/releases
 
 # Run evaluation with FA2
-evalplus.evaluate --model "mistralai/Mistral-7B-Instruct-v0.3"    \
-                  --dataset [humaneval|mbpp]                      \
-                  --backend hf                                    \
-                  --attn-implementation [flash_attention_2|sdpa]  \
+evalplus.evaluate --model "ise-uiuc/Magicoder-S-DS-6.7B"         \
+                  --dataset [humaneval|mbpp]                     \
+                  --backend hf                                   \
+                  --attn-implementation [flash_attention_2|sdpa] \
                   --greedy
 ```
 
@@ -97,11 +164,10 @@ evalplus.evaluate --model "mistralai/Mistral-7B-Instruct-v0.3"    \
 - `vllm` backend:
 
 ```bash
-pip install "evalplus[vllm]" --upgrade    # Install vLLM backend
-evalplus.evaluate --model "mistralai/Mistral-7B-Instruct-v0.3" \
-                  --dataset [humaneval|mbpp]                   \
-                  --backend vllm                               \
-                  --tp [TENSOR_PARALLEL_SIZE]                  \
+evalplus.evaluate --model "ise-uiuc/Magicoder-S-DS-6.7B" \
+                  --dataset [humaneval|mbpp]             \
+                  --backend vllm                         \
+                  --tp [TENSOR_PARALLEL_SIZE]            \
                   --greedy
 ```
 
@@ -109,10 +175,10 @@ evalplus.evaluate --model "mistralai/Mistral-7B-Instruct-v0.3" \
 
 ```bash
 # Launch a model server first: e.g., https://docs.vllm.ai/en/latest/serving/deploying_with_docker.html
-evalplus.evaluate --model "mistralai/Mistral-7B-Instruct-v0.3" \
-                  --dataset [humaneval|mbpp]                   \
-                  --backend openai                             \
-                  --base-url http://localhost:8000/v1          \
+evalplus.evaluate --model "ise-uiuc/Magicoder-S-DS-6.7B" \
+                  --dataset [humaneval|mbpp]             \
+                  --backend openai                       \
+                  --base-url http://localhost:8000/v1    \
                   --greedy
 ```
 
@@ -148,7 +214,19 @@ evalplus.evaluate --model "claude-3-haiku-20240307" \
 export GOOGLE_API_KEY="[YOUR_API_KEY]"
 evalplus.evaluate --model "gemini-1.5-pro"    \
                   --dataset [humaneval|mbpp]  \
-                  --backend gemini            \
+                  --backend google            \
+                  --greedy
+```
+
+### Amazon Bedrock models
+
+- [Amazon Bedrock](https://aws.amazon.com/bedrock/)
+
+```bash
+export BEDROCK_ROLE_ARN="[BEDROCK_ROLE_ARN]"
+evalplus.evaluate --model "anthropic.claude-3-5-sonnet-20241022-v2:0" \
+                  --dataset [humaneval|mbpp]                          \
+                  --backend bedrock                                   \
                   --greedy
 ```
 
@@ -172,21 +250,8 @@ pip install -r requirements.txt
 To learn more about how to use EvalPlus, please refer to:
 
 - [Command Line Interface](./docs/cli.md)
+- [EvalPerf](./docs/evalperf.md)
 - [Program Execution](./docs/execution.md)
-
-## 💻 LLM-generated code
-
-We also share pre-generated code samples from LLMs we have [evaluated](https://evalplus.github.io/leaderboard.html):
-
-- **HumanEval+**: See the attachment of our [v0.1.0 release](https://github.com/evalplus/evalplus/releases/tag/v0.1.0).
-- **MBPP+**: See the attachment of our [v0.2.0 release](https://github.com/evalplus/evalplus/releases/tag/v0.2.0).
-
-Each sample file is packaged in a zip file named like `${model_name}_temp_${temperature}.zip`.
-You can unzip them to a folder named like `${model_name}_temp_${temperature}` and run the evaluation from scratch with:
-
-```bash
-evalplus.evaluate --dataset humaneval --samples ${model_name}_temp_${temperature}
-```
 
 ## 📜 Citation
 
@@ -197,6 +262,14 @@ evalplus.evaluate --dataset humaneval --samples ${model_name}_temp_${temperature
   booktitle = {Thirty-seventh Conference on Neural Information Processing Systems},
   year = {2023},
   url = {https://openreview.net/forum?id=1qvx610Cu7},
+}
+
+@inproceedings{evalperf,
+  title = {Evaluating Language Models for Efficient Code Generation},
+  author = {Liu, Jiawei and Xie, Songrun and Wang, Junhao and Wei, Yuxiang and Ding, Yifeng and Zhang, Lingming},
+  booktitle = {First Conference on Language Modeling},
+  year = {2024},
+  url = {https://openreview.net/forum?id=IBCBMeAhmC},
 }
 ```
 
