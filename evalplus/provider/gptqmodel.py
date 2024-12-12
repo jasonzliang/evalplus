@@ -1,7 +1,15 @@
 from typing import List
 
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoTokenizer
+
+try:
+    from gptqmodel import GPTQModel, get_backend
+except ModuleNotFoundError as exception:
+    raise type(exception)(
+        "Tried to load gptqmodel, but gptqmodel is not installed ",
+        "please install gptqmodel via `pip install gptqmodel --no-build-isolation`",
+    )
 
 from evalplus.provider.base import DecoderBase
 from evalplus.provider.utility import (
@@ -10,38 +18,37 @@ from evalplus.provider.utility import (
 )
 
 
-class HuggingFaceDecoder(DecoderBase):
+class GPTQModelDecoder(DecoderBase):
     def __init__(
         self,
         name: str,
         dataset: str,
+        gptqmodel_backend: str = 'AUTO',
         force_base_prompt: bool = False,
-        attn_implementation: str = "eager",
-        device_map: str = None,
         **kwargs,
     ):
         super().__init__(name=name, **kwargs)
+
+        try:
+            backend = get_backend(gptqmodel_backend)
+        except Exception:
+            raise ValueError("GPTQModel support backend: AUTO, TRITON, EXLLAMA_V2, MARLIN, BITBLAS, QBITS, VLLM, SGLANG")
+
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         kwargs = {
-            "device_map": device_map,
+            "model_id_or_path": name,
             "trust_remote_code": self.trust_remote_code,
-            "torch_dtype": getattr(torch, self.dtype),
-            "attn_implementation": attn_implementation,  # "eager", "flash_attention_2", "sdpa"
+            "backend": backend
         }
         self.skip_special_tokens = True
-
-        print(f"{kwargs = }")
-
         self.force_base_prompt = force_base_prompt
-        self.tokenizer = AutoTokenizer.from_pretrained(name, use_fast=False)
+        self.tokenizer = AutoTokenizer.from_pretrained(name, trust_remote_code=self.trust_remote_code)
         if self.is_direct_completion():  # no chat template
             self.eos += extra_eos_for_direct_completion(dataset)
         else:  # with chat template
             self.eos += ["\n```\n"]
-
-        print(f"{self.eos = }")
-        self.model = AutoModelForCausalLM.from_pretrained(name, **kwargs)
+        self.model = GPTQModel.load(**kwargs)
         self.model = self.model.to(self.device)
 
     def is_direct_completion(self) -> bool:
@@ -51,10 +58,6 @@ class HuggingFaceDecoder(DecoderBase):
     def codegen(
         self, prompt: str, do_sample: bool = True, num_samples: int = 200
     ) -> List[str]:
-        if self.temperature == 0:
-            assert not do_sample
-            assert num_samples == 1
-
         prompt = (
             prompt
             if self.is_direct_completion()
@@ -62,29 +65,17 @@ class HuggingFaceDecoder(DecoderBase):
                 prompt, self.instruction_prefix, self.response_prefix, self.tokenizer
             )
         )
-        input_tokens = self.tokenizer.encode(prompt, return_tensors="pt").to(
-            self.device
-        )
-        kwargs = {}
-        if do_sample:
-            kwargs["top_p"] = 0.95
-            kwargs["temperature"] = self.temperature
+        input_tokens = self.tokenizer.encode(prompt, return_tensors="pt").to(self.device)
 
-        outputs = self.model.generate(
-            input_tokens,
-            max_new_tokens=self.max_new_tokens,
-            do_sample=do_sample,
-            num_return_sequences=min(self.batch_size, num_samples),
-            pad_token_id=self.tokenizer.pad_token_id or self.tokenizer.eos_token_id,
-            stop_strings=self.eos,
-            tokenizer=self.tokenizer,
-            **kwargs,
-        )
+        outputs = self.model.generate(input_ids=input_tokens,
+                                      pad_token_id=self.tokenizer.pad_token_id or self.tokenizer.eos_token_id,
+                                      max_new_tokens=self.max_new_tokens)
 
         gen_strs = self.tokenizer.batch_decode(
-            outputs[:, input_tokens.size(-1) :],
+            outputs[:, input_tokens.size(-1):],
             skip_special_tokens=self.skip_special_tokens,
         )
+
         outputs = []
         # removes eos tokens.
         for output in gen_strs:
