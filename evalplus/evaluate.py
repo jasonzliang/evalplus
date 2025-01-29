@@ -137,6 +137,7 @@ def evaluate(
     noextreme: bool = False,
     version: str = "default",
     output_file: Optional[str] = None,
+    gguf_file: Optional[str] = None,
     **model_kwargs,
 ):
     if model_kwargs:
@@ -146,6 +147,7 @@ def evaluate(
         )
         samples = run_codegen(
             dataset=dataset,
+            gguf_file=gguf_file,
             **model_kwargs,
         )
     assert samples is not None, "No samples provided"
@@ -156,7 +158,11 @@ def evaluate(
         result_path = os.path.join(samples, "eval_results.json")
     else:
         assert samples.endswith(".jsonl")
-        result_path = samples.replace(".jsonl", "_eval_results.json")
+        # legacy compatibility
+        if os.path.exists(samples.replace(".jsonl", "_eval_results.json")):
+            result_path = samples.replace(".jsonl", "_eval_results.json")
+        else:
+            result_path = samples.replace(".jsonl", ".eval_results.json")
 
     if output_file is not None:
         result_path = output_file
