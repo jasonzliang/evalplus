@@ -115,7 +115,7 @@ def reliability_guard(maximum_memory_bytes: Optional[int] = None):
     if maximum_memory_bytes is not None:
         underlying_platform = platform.uname().system
 
-        if underlying_platform != "Windows":
+        if underlying_platform not in ["Windows", "Darwin"]:
             import resource
 
             resource.setrlimit(
@@ -124,10 +124,9 @@ def reliability_guard(maximum_memory_bytes: Optional[int] = None):
             resource.setrlimit(
                 resource.RLIMIT_DATA, (maximum_memory_bytes, maximum_memory_bytes)
             )
-            if not underlying_platform == "Darwin":
-                resource.setrlimit(
-                    resource.RLIMIT_STACK, (maximum_memory_bytes, maximum_memory_bytes)
-                )
+            resource.setrlimit(
+                resource.RLIMIT_STACK, (maximum_memory_bytes, maximum_memory_bytes)
+            )
         else:
             """
             WARNING
