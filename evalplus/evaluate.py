@@ -366,9 +366,46 @@ def evaluate(
 
 
 def main():
-    from fire import Fire
+    try:
+        from fire import Fire
+        Fire(evaluate)
+    except Exception as e:
+        if "theme_name" in str(e) or "Inspector" in str(e):
+            # Fallback to direct argument parsing for help
+            import sys
+            if len(sys.argv) > 1 and sys.argv[1] in ['-h', '--help', 'help']:
+                print("EvalPlus Evaluation Tool")
+                print("Usage: evalplus.evaluate --dataset <dataset> --samples <samples_file>")
+                print("\nRequired arguments:")
+                print("  --dataset: Dataset name (humaneval or mbpp)")
+                print("  --samples: Path to samples file (.jsonl)")
+                print("\nOptional arguments:")
+                print("  --base_only: Only run base tests")
+                print("  --parallel: Number of parallel workers")
+                print("  --mini: Use mini dataset")
+                print("  --noextreme: Exclude extreme test cases")
+                print("  --version: Dataset version")
+                print("  --output_file: Output file path")
+                print("  --test_details: Include detailed test results")
+                return
+            else:
+                # Try to parse arguments manually for basic functionality
+                import argparse
+                parser = argparse.ArgumentParser(description='EvalPlus Evaluation')
+                parser.add_argument('--dataset', required=True, help='Dataset name')
+                parser.add_argument('--samples', required=True, help='Samples file')
+                parser.add_argument('--base_only', action='store_true', help='Base tests only')
+                parser.add_argument('--parallel', type=int, help='Number of workers')
+                parser.add_argument('--mini', action='store_true', help='Use mini dataset')
+                parser.add_argument('--noextreme', action='store_true', help='No extreme tests')
+                parser.add_argument('--version', default='default', help='Dataset version')
+                parser.add_argument('--output_file', help='Output file path')
+                parser.add_argument('--test_details', action='store_true', help='Test details')
 
-    Fire(evaluate)
+                args = parser.parse_args()
+                evaluate(**vars(args))
+        else:
+            raise e
 
 
 if __name__ == "__main__":
